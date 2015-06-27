@@ -1,0 +1,4 @@
+$cat .gitignore
+
+#API keys stored as .yml
+*.yml
