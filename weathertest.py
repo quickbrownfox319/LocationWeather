@@ -1,7 +1,15 @@
 import urllib2
 import json
-import 
-f = urllib2.urlopen('http://api.wunderground.com/api/{APIKEY}/geolookup/conditions/q/IA/Cedar_Rapids.json')
+import yaml
+
+with open('wundergroundkey.yml', 'r') as txt:
+	key = yaml.load(txt)
+
+key = 'http://api.wunderground.com/api/'+ key['wunderground']
+
+print key
+
+f = urllib2.urlopen(key + '/geolookup/conditions/q/IA/Cedar_Rapids.json')
 json_string = f.read()
 parsed_json = json.loads(json_string)
 location = parsed_json['location']['city']
