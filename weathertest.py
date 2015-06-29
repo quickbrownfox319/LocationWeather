@@ -2,17 +2,23 @@ import urllib2
 import json
 import yaml
 
+#get key from file
 with open('wundergroundkey.yml', 'r') as txt:
 	key = yaml.load(txt)
 
-key = 'http://api.wunderground.com/api/'+ key['wunderground']
+key = key['wunderground']
+zip_code = raw_input("Zip code: ")
 
-print key
-
-f = urllib2.urlopen(key + '/geolookup/conditions/q/IA/Cedar_Rapids.json')
+f = urllib2.urlopen(
+	'http://api.wunderground.com/api/%s/geolookup/forecast/conditions/q/%s.json' % (key,zip_code))
 json_string = f.read()
 parsed_json = json.loads(json_string)
 location = parsed_json['location']['city']
-temp_f = parsed_json['current_observation']['temp_f']
-print "Current temperature in %s is: %s" % (location, temp_f)
+
+#next day's forecast
+forecast_prefix = parsed_json['forecast']['txt_forecast']['forecastday'][2]
+day = forecast_prefix['title']
+forecast = forecast_prefix['fcttext']
+
+print ("The weather in {} on {} will be: \n{}".format(location, day, forecast))
 f.close()
