@@ -11,31 +11,6 @@ from oauth2client import tools
 
 import datetime
 
-
-###
-#wunderground API
-def get_weather():
-    with open('wundergroundkey.yml', 'r') as txt:
-        key = yaml.load(txt)
-
-    key = key['wunderground']
-    zip_code = raw_input("Zip code: ")
-
-    f = urllib2.urlopen(
-        'http://api.wunderground.com/api/%s/geolookup/forecast/conditions/q/%s.json' % (key,zip_code))
-    json_string = f.read()
-    parsed_json = json.loads(json_string)
-    location = parsed_json['location']['city']
-
-    #next day's forecast
-    forecast_prefix = parsed_json['forecast']['txt_forecast']['forecastday'][2]
-    day = forecast_prefix['title']
-    forecast = forecast_prefix['fcttext']
-
-    print ("The weather in {} on {} will be: \n{}".format(location, day, forecast))
-    f.close()
-
-
 ###
 #Google Calendar API
 
@@ -72,6 +47,34 @@ def get_credentials():
         print 'Storing credentials to ' + credential_path
     return credentials
 
+
+###
+#wunderground API
+def get_weather(loc):
+    with open('wundergroundkey.yml', 'r') as txt:
+        key = yaml.load(txt)
+
+    key = key['wunderground']
+    zip_code = raw_input(loc)
+
+    f = urllib2.urlopen(
+        'http://api.wunderground.com/api/%s/geolookup/forecast/conditions/q/%s.json' % (key,zip_code))
+    json_string = f.read()
+    parsed_json = json.loads(json_string)
+    location = parsed_json['location']['city']
+
+    #next day's forecast
+    forecast_prefix = parsed_json['forecast']['txt_forecast']['forecastday'][2]
+    day = forecast_prefix['title']
+    forecast = forecast_prefix['fcttext']
+
+    print ("The weather in {} on {} will be: \n{}".format(location, day, forecast))
+    f.close()
+
+#get zip code from location if there is one
+#def getzip():
+
+
 def main():
     """
     Retrieve today's event's weather using Google Calendar API and Wunderground API
@@ -85,10 +88,10 @@ def main():
     tomorrow = now + datetime.timedelta(days=2)
     print "Today's and tomorrow's events"
 
+    #set event search for today and tomorrow
     # 'Z' indicates UTC time
-    # 
     eventsResult = service.events().list(
-        calendarId='primary', timeMin=now.isoformat() + 'Z',
+        calendarId='primary', timeMin=now.isoformat() + 'Z', 
         timeMax=tomorrow.isoformat() + 'Z', maxResults=10, singleEvents=True,
         orderBy='startTime').execute()
     events = eventsResult.get('items', [])
@@ -99,8 +102,11 @@ def main():
 
         try:
             location = event['location']
+            #need to parse location for zip, maybe using regex
+            #get_weather(location)
         except KeyError:
-            location = "08807"
+            print "Site has no location, but here's NJ's weather"
+            location = "08807" #default zip
 
         start = event['start'].get('dateTime', event['start'].get('date'))
         print start
