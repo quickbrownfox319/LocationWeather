@@ -3,6 +3,7 @@ import os
 import urllib2
 import json
 import yaml
+import re
 
 from apiclient import discovery
 import oauth2client
@@ -50,12 +51,12 @@ def get_credentials():
 
 ###
 #wunderground API
-def get_weather(loc):
+def get_weather(zip_code):
+
     with open('wundergroundkey.yml', 'r') as txt:
         key = yaml.load(txt)
 
     key = key['wunderground']
-    zip_code = raw_input(loc)
 
     f = urllib2.urlopen(
         'http://api.wunderground.com/api/%s/geolookup/forecast/conditions/q/%s.json' % (key,zip_code))
@@ -100,18 +101,21 @@ def main():
         print 'No upcoming events found.'
     for event in events:
 
+        #try and pull zip code, else default zip code
         try:
             location = event['location']
-            #need to parse location for zip, maybe using regex
+            zip_code = re.search(r'.*(\d{5}(\-\d{4})?)$', location)
+            print "zip code: ", zip_code.groups()[0]
             #get_weather(location)
-        except KeyError:
+        except (KeyError, AttributeError):
             print "Site has no location, but here's NJ's weather"
-            location = "08807" #default zip
+            zip_code = "08807" #default zip
 
         start = event['start'].get('dateTime', event['start'].get('date'))
+        
         print start
         print event['summary']
-        print location + "\n"
+        print get_weather(zip_code)
 
 
 if __name__ == '__main__':
