@@ -104,9 +104,11 @@ def main():
         #try and pull zip code, else default zip code
         try:
             location = event['location']
+            print "Location: ", location
             zip_code = re.search(r'.*(\d{5}(\-\d{4})?)$', location)
-            print "zip code: ", zip_code.groups()[0]
-            #get_weather(location)
+            zip_code = zip_code.groups()[0]
+            print "zip code: ", zip_code
+
         except (KeyError, AttributeError):
             print "Site has no location, but here's NJ's weather"
             zip_code = "08807" #default zip
