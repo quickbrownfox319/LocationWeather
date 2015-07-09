@@ -12,14 +12,13 @@ from oauth2client import tools
 
 import datetime
 
-###
-#Google Calendar API
 
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.yml'
 APPLICATION_NAME = 'Google Calendar API Quickstart'
 
-
+###
+#Google Calendar API oauth2
 def get_credentials():
     """Gets valid user credentials from storage.
 
@@ -53,7 +52,7 @@ def get_credentials():
 #wunderground API
 def get_weather(zip_code):
 
-    with open('wundergroundkey.yml', 'r') as txt:
+    with open('api_keys.yml', 'r') as txt:
         key = yaml.load(txt)
 
     key = key['wunderground']
@@ -72,9 +71,6 @@ def get_weather(zip_code):
     print ("The weather in {} on {} will be: \n{}".format(location, day, forecast))
     f.close()
 
-#get zip code from location if there is one
-#def getzip():
-
 
 def main():
     """
@@ -86,8 +82,8 @@ def main():
 
     #get today's date & time
     now = datetime.datetime.today()
-    tomorrow = now + datetime.timedelta(days=2)
-    print "Today's and tomorrow's events"
+    tomorrow = now + datetime.timedelta(days=7)
+    print "Upcoming Events \n"
 
     #set event search for today and tomorrow
     # 'Z' indicates UTC time
@@ -98,26 +94,29 @@ def main():
     events = eventsResult.get('items', [])
 
     if not events:
-        print 'No upcoming events found.'
+        print 'No upcoming events found.\n'
     for event in events:
 
         #try and pull zip code, else default zip code
         try:
             location = event['location']
             print "Location: ", location
-            zip_code = re.search(r'.*(\d{5}(\-\d{4})?)$', location)
+
+            #regex interpretation: zero or more instances of 5 consecutive numbers for
+            #first half of zip code, and '-' and 4 more consecutive digits for second half of zip
+            #one or more times
+            zip_code = re.search(r'.*(\d{5}(\-\d{4})?)', location)
             zip_code = zip_code.groups()[0]
-            print "zip code: ", zip_code
 
         except (KeyError, AttributeError):
-            print "Site has no location, but here's NJ's weather"
+            print "Site has no location, but here's NJ's weather\n"
             zip_code = "08807" #default zip
 
         start = event['start'].get('dateTime', event['start'].get('date'))
         
-        print start
+        print start,
         print event['summary']
-        print get_weather(zip_code)
+        print get_weather(zip_code), '\n'
 
 
 if __name__ == '__main__':
