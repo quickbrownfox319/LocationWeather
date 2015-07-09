@@ -12,10 +12,20 @@ from oauth2client import tools
 
 import datetime
 
+from pushingbox_class import pushingbox
 
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.yml'
 APPLICATION_NAME = 'Google Calendar API Quickstart'
+
+###
+#pushingbox api
+def push():
+    with open('api_keys.yml', 'r') as txt:
+        key = yaml.load(txt)
+
+    key = key['pushbullet']  
+    push_me  = pushingbox(key)
 
 ###
 #Google Calendar API oauth2
@@ -117,6 +127,8 @@ def main():
         print start,
         print event['summary']
         print get_weather(zip_code), '\n'
+
+        push()
 
 
 if __name__ == '__main__':
