@@ -12,20 +12,28 @@ from oauth2client import tools
 
 import datetime
 
-from pushingbox_class import pushingbox
+from pushbullet import Pushbullet
 
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.yml'
 APPLICATION_NAME = 'Google Calendar API Quickstart'
 
 ###
-#pushingbox api
-def push():
+#pushbullet api
+#https://github.com/randomchars/pushbullet.py
+def push(title, msg):
     with open('api_keys.yml', 'r') as txt:
         key = yaml.load(txt)
 
     key = key['pushbullet']  
-    push_me  = pushingbox(key)
+    try:
+        pb = Pushbullet(key)
+        #push event and weather via pushbullet
+        push = pb.push_note(title, msg)
+
+    except Exception, detail:
+        print "Error, ", detail, "\n"
+
 
 ###
 #Google Calendar API oauth2
@@ -78,8 +86,9 @@ def get_weather(zip_code):
     day = forecast_prefix['title']
     forecast = forecast_prefix['fcttext']
 
-    print ("The weather in {} on {} will be: \n{}".format(location, day, forecast))
+    forecast_msg = ("The weather in {} on {} will be: \n{}".format(location, day, forecast))
     f.close()
+    return forecast_msg
 
 
 def main():
@@ -122,13 +131,17 @@ def main():
             print "Site has no location, but here's NJ's weather\n"
             zip_code = "08807" #default zip
 
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        
-        print start,
-        print event['summary']
-        print get_weather(zip_code), '\n'
+        start_time = event['start'].get('dateTime', event['start'].get('date'))
+        forecast = get_weather(zip_code)
+        event = event['summary']
 
-        push()
+        #debug
+        print "start_time: " + start_time
+        print "event: " + event
+        print "forecast: " + forecast
+
+        #push with pushbullet!
+        push("Weather at: " + event, forecast)
 
 
 if __name__ == '__main__':
