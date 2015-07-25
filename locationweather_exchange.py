@@ -5,8 +5,6 @@ import json
 import yaml
 import re
 
-import requests
-
 from apiclient import discovery
 import oauth2client
 from oauth2client import client
@@ -14,16 +12,28 @@ from oauth2client import tools
 
 import datetime
 
-#Google calendar API auth
-try:
-    import argparse
-    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
-except ImportError:
-    flags = None
+from pushbullet import Pushbullet
 
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.yml'
 APPLICATION_NAME = 'Google Calendar API Quickstart'
+
+###
+#pushbullet api
+#https://github.com/randomchars/pushbullet.py
+def push(title, msg):
+    with open('api_keys.yml', 'r') as txt:
+        key = yaml.load(txt)
+
+    key = key['pushbullet']  
+    try:
+        pb = Pushbullet(key)
+        #push event and weather via pushbullet
+        push = pb.push_note(title, msg)
+
+    except Exception, detail:
+        print "Error, ", detail, "\n"
+
 
 ###
 #Google Calendar API oauth2
@@ -80,23 +90,6 @@ def get_weather(zip_code):
     f.close()
     return forecast_msg
 
-###
-#pushbullet api
-def push(title, msg):
-    with open('api_keys.yml', 'r') as txt:
-        key = yaml.load(txt)
-
-    key = key['pushbullet']
-
-    try:
-        url = 'https://api.pushbullet.com/v2/pushes'
-        headers = {'Authorization': 'Bearer {}'.format(key), 'Content-Type': 'application/json'}
-        payload = {'type':'note', 'title':title, 'body':msg}
-        r = requests.post(url, data=json.dumps(payload), headers=headers)
-        
-    except Exception, detail:
-        print "Error, ", detail, "\n"
-
 
 def main():
     """
@@ -121,35 +114,34 @@ def main():
 
     if not events:
         print 'No upcoming events found.\n'
-    else:
-        for event in events:
+    for event in events:
 
-            #try and pull zip code, else default zip code
-            try:
-                location = event['location']
-                print "Location: ", location
+        #try and pull zip code, else default zip code
+        try:
+            location = event['location']
+            print "Location: ", location
 
-                #regex interpretation: zero or more instances of 5 consecutive numbers for
-                #first half of zip code, and '-' and 4 more consecutive digits for second half of zip
-                #one or more times
-                zip_code = re.search(r'.*(\d{5}(\-\d{4})?)', location)
-                zip_code = zip_code.groups()[0]
+            #regex interpretation: zero or more instances of 5 consecutive numbers for
+            #first half of zip code, and '-' and 4 more consecutive digits for second half of zip
+            #one or more times
+            zip_code = re.search(r'.*(\d{5}(\-\d{4})?)', location)
+            zip_code = zip_code.groups()[0]
 
-            except (KeyError, AttributeError):
-                print "Site has no location, but here's NJ's weather\n"
-                zip_code = "08807" #default zip
+        except (KeyError, AttributeError):
+            print "Site has no location, but here's NJ's weather\n"
+            zip_code = "08807" #default zip
 
-            start_time = event['start'].get('dateTime', event['start'].get('date'))
-            forecast = get_weather(zip_code)
-            event = event['summary']
+        start_time = event['start'].get('dateTime', event['start'].get('date'))
+        forecast = get_weather(zip_code)
+        event = event['summary']
 
-            #debug
-            print "start_time: " + start_time
-            print "event: " + event
-            print "forecast: " + forecast
+        #debug
+        print "start_time: " + start_time
+        print "event: " + event
+        print "forecast: " + forecast
 
-            #push with pushbullet!
-            push("Weather at: " + event, forecast)
+        #push with pushbullet!
+        push("Weather at: " + event, forecast)
 
 
 if __name__ == '__main__':
