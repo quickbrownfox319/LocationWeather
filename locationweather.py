@@ -14,30 +14,16 @@ from oauth2client import tools
 
 import datetime
 
+#Google calendar API auth
+try:
+    import argparse
+    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
+except ImportError:
+    flags = None
+
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.yml'
 APPLICATION_NAME = 'Google Calendar API Quickstart'
-
-###
-#pushbullet api
-def push(title, msg):
-    with open('api_keys.yml', 'r') as txt:
-        key = yaml.load(txt)
-
-    key = key['pushbullet']
-
-    try:
-        url = 'https://api.pushbullet.com/v2/pushes'
-        headers = {'Authorization': 'Bearer {}'.format(key), 'Content-Type': 'application/json'}
-        payload = {'type':'note', 'title':title, 'body':msg}
-        r = requests.post(url, data=json.dumps(payload), headers=headers)
-
-        #push event and weather via pushbullet
-        #push = pb.push_note(title, msg)
-
-    except Exception, detail:
-        print "Error, ", detail, "\n"
-
 
 ###
 #Google Calendar API oauth2
@@ -93,6 +79,26 @@ def get_weather(zip_code):
     forecast_msg = ("The weather in {} on {} will be: \n{}".format(location, day, forecast))
     f.close()
     return forecast_msg
+
+###
+#pushbullet api
+def push(title, msg):
+    with open('api_keys.yml', 'r') as txt:
+        key = yaml.load(txt)
+
+    key = key['pushbullet']
+
+    try:
+        url = 'https://api.pushbullet.com/v2/pushes'
+        headers = {'Authorization': 'Bearer {}'.format(key), 'Content-Type': 'application/json'}
+        payload = {'type':'note', 'title':title, 'body':msg}
+        r = requests.post(url, data=json.dumps(payload), headers=headers)
+
+        #push event and weather via pushbullet
+        #push = pb.push_note(title, msg)
+
+    except Exception, detail:
+        print "Error, ", detail, "\n"
 
 
 def main():
