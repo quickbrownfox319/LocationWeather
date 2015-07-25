@@ -5,6 +5,8 @@ import json
 import yaml
 import re
 
+import requests
+
 from apiclient import discovery
 import oauth2client
 from oauth2client import client
@@ -12,24 +14,26 @@ from oauth2client import tools
 
 import datetime
 
-from pushbullet import Pushbullet
-
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.yml'
 APPLICATION_NAME = 'Google Calendar API Quickstart'
 
 ###
 #pushbullet api
-#https://github.com/randomchars/pushbullet.py
 def push(title, msg):
     with open('api_keys.yml', 'r') as txt:
         key = yaml.load(txt)
 
-    key = key['pushbullet']  
+    key = key['pushbullet']
+
     try:
-        pb = Pushbullet(key)
+        url = 'https://api.pushbullet.com/v2/pushes'
+        headers = {'Authorization': 'Bearer {}'.format(key), 'Content-Type': 'application/json'}
+        payload = {'type':'note', 'title':title, 'body':msg}
+        r = requests.post(url, data=json.dumps(payload), headers=headers)
+
         #push event and weather via pushbullet
-        push = pb.push_note(title, msg)
+        #push = pb.push_note(title, msg)
 
     except Exception, detail:
         print "Error, ", detail, "\n"
