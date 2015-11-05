@@ -36,6 +36,7 @@ def get_credentials():
     Returns:
         Credentials, the obtained credential.
     """
+    
     home_dir = os.path.expanduser('~')
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
@@ -59,6 +60,13 @@ def get_credentials():
 ###
 #wunderground API
 def get_weather(zip_code):
+    """Gets weather using Wunderground API by pulling credentials from storage.
+    Uses zip code from Google calendar as the location, but if none provided,
+    uses a default zip code.
+
+    Returns:
+        Predicted next day's forecast as a string from JSON response.
+    """
 
     with open('api_keys.yml', 'r') as txt:
         key = yaml.load(txt)
@@ -66,7 +74,7 @@ def get_weather(zip_code):
     key = key['wunderground']
 
     f = urllib2.urlopen(
-        'http://api.wunderground.com/api/%s/geolookup/forecast/conditions/q/%s.json' % (key,zip_code))
+        'http://api.wunderground.com/api/{}/geolookup/forecast/conditions/q/{}.json'.format(key,zip_code))
     json_string = f.read()
     parsed_json = json.loads(json_string)
     location = parsed_json['location']['city']
@@ -83,6 +91,12 @@ def get_weather(zip_code):
 ###
 #pushbullet api
 def push(title, msg):
+    """Receives the message title and message body as strings.
+
+    Pushes title and message as a Pushbullet message to all connected devices via the Pushbullet API.
+
+    """
+
     with open('api_keys.yml', 'r') as txt:
         key = yaml.load(txt)
 
@@ -99,9 +113,13 @@ def push(title, msg):
 
 
 def main():
+    """Calls methods for credentials and API requests.
+    Retrieves calandar event's weather using Google Calendar API and Wunderground API,
+    then passes calendar events into Wunderground. After receiving the response from Wunderground,
+    it pushes the forecast and event title via Pushbullet to user.
+
     """
-    Retrieve today's event's weather using Google Calendar API and Wunderground API
-    """
+
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
