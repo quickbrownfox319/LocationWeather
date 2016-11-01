@@ -1,4 +1,4 @@
-# LocationWeather
+# LocoWeather
 Get weather based on event location from a calendar
 
 <h2>Event-based Weather</h2>
